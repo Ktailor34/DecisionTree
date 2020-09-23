@@ -197,10 +197,8 @@ class DecisionTreeBuilder:
     
     smallestFeature,featureIndex, malTrues, benTrues, malFalses, benFalses  = self.findSmallestFeature(cleanData,midpoints)
     highestInfoGain = Hs - smallestFeature
-    print("INFO GAIN:",highestInfoGain)
-    print("Threshold is", threshold)
 
-    if(highestInfoGain < threshold):
+    if(highestInfoGain < threshold or depthcounter > nodedepth):
       if(malAmount > benAmount):
         leaf = LeafNode(4)
       else:
@@ -240,9 +238,9 @@ class DecisionTreeBuilder:
         rightData.append(row)
 
     if (len(leftData) != 0):
-      tmpNodeLeft = self.recursiveConstructHelper(leftData,threshold,10,depthcounter+1)
+      tmpNodeLeft = self.recursiveConstructHelper(leftData,threshold,nodedepth,depthcounter+1)
     if (len(rightData) != 0):
-      tmpNodeRight = self.recursiveConstructHelper(rightData,threshold,10,depthcounter+1)
+      tmpNodeRight = self.recursiveConstructHelper(rightData,threshold,nodedepth,depthcounter+1)
 
     root.insert_left(tmpNodeLeft)
     root.insert_right(tmpNodeRight)
@@ -250,14 +248,14 @@ class DecisionTreeBuilder:
     return root
 
 
-  def construct(self, data, threshold=.1):
+  def construct(self, data, threshold=.1, nodeDepth=10):
     # '''
     #    This function constructs your tree with a default threshold of None. 
     #    The depth of the constructed tree is returned.
     # '''
     cleanData = self.cleanData(data)
 
-    rootNode = self.recursiveConstructHelper(cleanData,threshold,10,1)
+    rootNode = self.recursiveConstructHelper(cleanData,threshold,nodeDepth,1)
     self.tree = rootNode
 
     return self.tree.get_depth(0) # Return the depth of your constructed tree.
@@ -314,9 +312,9 @@ def printResults(test_data,predictions):
   print("Recall:", recall)
   print("Precision", precision)
   print("F1 Score", F1S)
-  return acc
+  return acc,recall,precision,F1S
 
-def main(threshold):
+def main(threshold,nodeDepth,splitValue):
   # 1. Read in data from file.
   print("1. Reading File")
   with open("breast-cancer-wisconsin.data") as fp:
@@ -330,8 +328,8 @@ def main(threshold):
   print("2. Separating Data")
   number_of_rows = len(all_data)
   all_data = all_data
-  training_data = all_data[:500]
-  test_data = all_data[500:]    
+  training_data = all_data[:splitValue]
+  test_data = all_data[splitValue:]    
 
   print()
 
@@ -342,7 +340,7 @@ def main(threshold):
 
   # 4. Construct the Tree.
   print("4. Constructing the Tree with Training Data")
-  tree_length = dtb.construct(training_data,threshold)
+  tree_length = dtb.construct(training_data,threshold,nodeDepth)
   print("Tree Length: " + str(tree_length))
   print()
 
@@ -352,11 +350,33 @@ def main(threshold):
   print()
 
   # 6. Perform Data Analysis
-  acc = printResults(test_data,predictions)
+  acc,recall,precision,F1S = printResults(test_data,predictions)
 
-#Params: Threshold
-main(.1)
+  return acc,recall,precision,F1S
 
+
+#Params: Info Gain Threshold, max Depth, split value of data
+acc = []
+recalls = []
+precisions = []
+F1Ss = []
+splitValue = 640
+threshold =.1
+tlist = [.01,.06,.11,.16,.21,.26,.31]
+splitVal = []
+
+# For TREE LENGTHS
+for i in range(1,8):
+  a,recall,precision,F1S = main(.05,i,splitValue)
+  acc.append(round(a,4))
+  recalls.append(round(recall,4))
+  precisions.append(round(precision,4))
+  F1Ss.append(round(F1S,4))
+
+print("Accuracy",acc)
+print("Recall:",recalls)
+print("Precision",precisions)
+print("F1 Score",F1Ss)
 
 
 
