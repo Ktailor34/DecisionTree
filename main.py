@@ -365,7 +365,10 @@ threshold =.1
 tlist = [.01,.06,.11,.16,.21,.26,.31]
 splitVal = []
 
-# For TREE LENGTHS
+# This block is an example for Tree Lengths, edit as you wish
+# Edit this part of the code changing the parameters in the
+# call to main() funciton. Params are as follows
+# Information Gain, Tree Depth Max Value, Row Number (integer, 0-699)
 for i in range(1,8):
   a,recall,precision,F1S = main(.05,i,splitValue)
   acc.append(round(a,4))
